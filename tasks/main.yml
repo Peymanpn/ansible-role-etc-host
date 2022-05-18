@@ -1,0 +1,21 @@
+---
+# tasks file for ansible-etc-hosts
+
+- name: debug-private-nets
+  debug:
+    msg: "{{item.key}} - {{item.value}}"
+  with_items: "{{hostvars[inventory_hostname].single_servers_private_ips | dict2items}}"
+  when: debug_etc_hosts is defined and debug_etc_hosts == true
+
+- name: update-the-/etc/hosts-file-with-node-name
+  tags: etc_hosts
+  become: true
+  lineinfile:
+    path: "/etc/hosts"
+    regexp: ".*{{item.key}}.*"
+    line: "{{item.value}} {{item.key}}"
+    state: present
+    backup: true
+    create: true
+  register: servers_etchosts_upadate
+  with_items: "{{hostvars[inventory_hostname].single_servers_private_ips | dict2items}}"
